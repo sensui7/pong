@@ -3,6 +3,7 @@ module Logic(moveBall, wallBounce, paddleBounce) where
 import State
 
 type Radius = Float
+type Location = Float
 type Position = (Float, Float)
 
 moveBall :: Float -> PongGame -> PongGame
@@ -29,25 +30,26 @@ wallBounce game = game { ballVel = (vx, vy') }
       vy' = if wallCollision (ballLoc game) radius
             then -vy else vy
 
-paddleCollision :: Position -> Radius -> Float -> Bool
-paddleCollision (x,y) radius paddle = rightCollision || leftCollision
+paddleCollision :: Position -> Radius -> Location -> Location -> Bool
+paddleCollision (x,y) radius paddleRight paddleLeft = rightCollision || leftCollision
    where
-      rightCollision = x - 10 >= 90 && y <= (paddle + 43) && y >= (paddle - 43)
-      leftCollision = x + 10 <= -90 && y <= (paddle + 43) && y >= (paddle - 43)
+      rightCollision = x - radius >= 90 && y <= (paddleRight + 43) && y >= (paddleRight - 43)
+      leftCollision = x + radius <= (-90) && y <= (paddleLeft + 43) && y >= (paddleLeft - 43)
 
 paddleBounce :: PongGame -> PongGame
-paddleBounce game = game { ballVel = (vx', vy'), player1 = m', player2 = n'}
+paddleBounce game = game { ballVel = (vx', vy'), player1 = paddleRight, player2 = paddleLeft'}
    where
       radius = 10
       (vx, vy) = ballVel game
-      m' = -10
-      n' = 0
+      paddleLeft' = 0
+      paddleRight = player1 game
 
-      vx' = if paddleCollision (ballLoc game) radius m' then -vx else vx
-      vy' = if paddleCollision (ballLoc game) radius m' then -vy else vy
+      (vx', vy') = if paddleCollision (ballLoc game) radius paddleRight paddleLeft'
+                   then (-vx, -vy)
+                   else (vx, vy)
 
-
-
+      --vx' = if paddleCollision (ballLoc game) radius paddleLoc then -vx else vx
+      --vy' = if paddleCollision (ballLoc game) radius paddleLoc then -vy else vy
 
 
 
