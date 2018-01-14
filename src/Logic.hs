@@ -4,7 +4,7 @@ To-Do: correct the logic how the ball gets reflected instead
 of simply changing the x velocity vector
 -}
 
-module Logic(moveBall, wallBounce, paddleBounce, pauseGame, handleKeys) where
+module Logic(checkWinner, moveBall, wallBounce, paddleBounce, pauseGame, handleKeys) where
 
 import State
 import Graphics.Gloss.Interface.Pure.Game
@@ -41,24 +41,53 @@ wallBounce game = game { ballVel = (vx, vy') }
       vy' = if wallCollision (ballLoc game) radius
             then -vy else vy
 
--- Check if the ball touches the paddle (calculated by length ranges)
-paddleCollision :: Position -> Radius -> Location -> Location -> Bool
-paddleCollision (x,y) radius paddleRight paddleLeft = rightCollision || leftCollision
+checkWinner :: PongGame -> PongGame
+checkWinner game = game { ballLoc = (x', y') }
    where
-      rightCollision = x - radius >= 90 && y <= (paddleRight + 43) && y >= (paddleRight - 43)
-      leftCollision = x + radius <= (-90) && y <= (paddleLeft + 43) && y >= (paddleLeft - 43)
+     (x, y) = ballLoc game
+     radius = 10
+
+     (x', y') = if x - 10 > 150 || x + 10 < (-150) then (0, 0) else (x, y)
+
+-- Check if the ball touches the right paddle (calculated by length ranges)
+paddleCollisionRight :: Position -> Radius -> Location -> (Bool, Bool)
+paddleCollisionRight (x,y) radius paddleRight = (rightUp, rightDown)
+   where
+      (rightUp, rightDown) = (x - radius >= 90 && y <= (paddleRight + 43) && y >= paddleRight,
+                              x - radius >= 90 && y <= paddleRight && y >= (paddleRight - 43))
+
+-- Check if the ball touches the left paddle (calculated by length ranges)
+paddleCollisionLeft :: Position -> Radius -> Location -> (Bool, Bool)
+paddleCollisionLeft (x,y) radius paddleLeft = (leftUp, leftDown)
+   where
+      (leftUp, leftDown) = (x + radius <= (-90) && y <= (paddleLeft + 43) && y >= paddleLeft,
+                              x + radius <= (-90) && y <= paddleLeft && y >= (paddleLeft - 43))
 
 -- Change the ball direction after checking for paddle collision
 paddleBounce :: PongGame -> PongGame
-paddleBounce game = game { ballVel = (vx', vy'), player1 = paddleRight, player2 = paddleLeft}
+paddleBounce game = game { ballVel = (vx', vy'), player1 = paddleRight, player2 = paddleLeft }
    where
       radius = 10
       (vx, vy) = ballVel game
       paddleLeft = player2 game
       paddleRight = player1 game
 
-      (vx', vy') = if paddleCollision (ballLoc game) radius paddleRight paddleLeft
-                   then (-vx, vy)
+      (vx', vy') = if (paddleCollisionRight (ballLoc game) radius paddleRight) == (True, False) && vx >= 0 && vy >= 0
+                   then (-vx, vy + 10)
+                   else if (paddleCollisionRight (ballLoc game) radius paddleRight) == (False, True) && vx >= 0 && vy >= 0
+                   then (-vx, -vy + 15)
+                   else if (paddleCollisionRight (ballLoc game) radius paddleRight) == (True, False) && vx >= 0 && vy <= 0
+                   then (-vx, -vy + 20)
+                   else if (paddleCollisionRight (ballLoc game) radius paddleRight) == (False, True) && vx >= 0 && vy <= 0
+                   then (-vx, vy + 15)
+                   else if (paddleCollisionLeft (ballLoc game) radius paddleLeft) == (True, False) && vx <= 0 && vy <= 0
+                   then (-vx + 15, -vy)
+                   else if (paddleCollisionLeft (ballLoc game) radius paddleLeft) == (False, True) && vx <= 0 && vy >= 0
+                   then (-vx + 10, -vy)
+                   else if (paddleCollisionLeft (ballLoc game) radius paddleLeft) == (True, False) && vx <= 0 && vy >= 0
+                   then (-vx + 20, vy)
+                   else if (paddleCollisionLeft (ballLoc game) radius paddleLeft) == (False, True) && vx <= 0 && vy <= 0
+                   then (-vx + 10, vy)
                    else (vx, vy)
 
 -- Pause the game by changing one of the data structure values

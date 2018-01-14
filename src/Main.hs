@@ -23,7 +23,7 @@ fps = 60
 --update seconds game = wallBounce . paddleBounce . moveBall seconds
 
 update :: Float -> PongGame -> PongGame
-update seconds game | pauseGame game == True = game | otherwise = wallBounce $ paddleBounce $ moveBall seconds game
+update seconds game | pauseGame game == True = game | otherwise = checkWinner $ wallBounce $ paddleBounce $ moveBall seconds game
 
 main :: IO ()
 main = play window background fps initialState render handleKeys update
