@@ -13,7 +13,7 @@ render game = pictures [ball, walls, mkPaddle red 120 $ player1 game, mkPaddle o
    where
      -- Create the ball of radius 10
      ball = uncurry translate (ballLoc game) $ color ballColor $ circleSolid 10
-     ballColor = yellow
+     ballColor = green
 
      -- Create the top and bottom walls
      wall :: Float -> Picture

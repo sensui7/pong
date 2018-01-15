@@ -8,7 +8,9 @@ data PongGame = Game
    { ballLoc :: (Float, Float), -- ^ Pong ball (x, y) location
      ballVel :: (Float, Float), -- ^ Pong ball (x, y) velocity
      player1 :: Float,          -- ^ Right player
-     player2 :: Float,           -- ^ Left player
+     player2 :: Float,          -- ^ Left player
+     accelerateUp :: Bool,      -- ^ Right player accelerate up
+     accelerateDown :: Bool,    -- ^ Right player accelerate down
      pause   :: Bool            -- ^ Check for pause state
    } deriving Show
 
@@ -16,8 +18,10 @@ data PongGame = Game
 initialState :: PongGame
 initialState = Game
    { ballLoc = (-10, 30),
-     ballVel = (150, 30),
+     ballVel = (150, 150),
      player1 = 40,
      player2 = 40,
+     accelerateUp = False,
+     accelerateDown = False,
      pause = False
    }
